@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CATALOGO</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+  <!--lINK CSS DE BOOSTRAP-->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css">
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css">
+  <script src="	https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <style>
+    main {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+
+    }
+
+    #unidades {
+      width: 50px;
+    }
+
+    .card {
+      margin: 20px;
+    }
+
+    .card img {
+      height: 300px;
+    }
+
+    #opciones {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+
+<body>
+  <%- include('../parciales/navbar')%>
+    <main>
+      <%catalogo.forEach(function(producto){%>
+
+        <div class="card" style="width: 18rem;">
+          <img src="https://picsum.photos/300/300?random<%=producto._id%>" class="card-img-top" alt="...">
+          <div class="card-body">
+
+            <h5 class="card-title">
+              <%=producto.nombre%>
+
+            </h5>
+            <!-- <p class="card-text">
+              <%=producto._id%>
+            </p>-->
+            <p class="card-text">
+              <%=producto.descripcion%>
+            </p>
+            <p class="card-text">
+              <%=producto.precio%>
+            </p>
+
+            <a href="#" class="btn btn-outline-success" role="button" data-bs-toggle="modal"
+              data-bs-target="#exampleModal">
+              ver producto
+            </a>
+            <button onclick="agregarProducto('<%=producto._id%>', '<%=producto.nombre%>','<%=producto.precio%>')"
+              class="btn btn-dark"><i class="bi bi-cart-plus"></i></button>
+
+            <input type="number" id="unidades">
+          </div>
+        </div>
+        <%})%>
+
+
+    </main>
+
+
+    <script>
+
+      var carroCompras = JSON.parse(localStorage.getItem('carroCompras')) || []; //estamos buscando un arreglo yque es lo que esta guardado en el local store si no hay algo le decimos que si no esta lo cree
+
+      function agregarProducto(id, nombre, precio) {
+        const repeat = carroCompras.some((productorepe) => productorepe.id === id);
+
+        if (repeat) {
+          carroCompras.map((prod) => {
+            if (prod.id === id) {
+              (prod.cantidad++);
+              cookies();
+            }
+          });
+        } else {
+          // estamos creando una funcion y la convertimos en un arreglo 
+          carroCompras.push({
+            'id': id,
+            'nombre': nombre,
+            'precio': precio,
+            'cantidad': 1
+          });
+        }
+
+        // carroCompras.push(producto);// aqui le indicamos que a carro compras le vamos a agregar los atributos de productos y esto quedaria como un clave valor
+        console.log(carroCompras)
+
+        cookies();
+
+      }
+
+      function cookies() {
+        localStorage.setItem('carroCompras', JSON.stringify(carroCompras));// se convierte en string y se almacena
+      }
+
+
+      const div = document.getElementById('carritoContenido');
+
+      function mostrarProducto() {
+        div.innerHTML = ''
+        carroCompras.forEach(elementoP => {
+
+
+          const detalles = document.createElement('div');
+          detalles.innerHTML = `
+        <div class="d-flex justify-content-between">
+            <div class="w-50">
+              <img src="https://source.unsplash.com/1600x900/?moda" alt=""  class="img-fluid rounded-start" alt="producto">
+            </div>
+            <div>
+              <p>${elementoP.nombre}</p>
+              <p>${elementoP.precio}</p>
+
+              <div  class="d-flex justify-content-around" >
+                
+                <button  class="btn btn-outline-danger mx-1" style="max-height:40px; max-width:40px;" onclick="restarProducto('${elementoP.id}')">-</button>
+              <p> cantidad: ${elementoP.cantidad} </p>
+              <button  class="btn btn-outline-success mx-1" style="max-height:40px; max-width:40px; margin-left:15px;" onclick="sumarProducto('${elementoP.id}')">+</button>
+
+                <button class="btn btn-outline-danger ms-4" style="max-height:40px; max-width:40px;" onclick="eliminarProductoC('${elementoP.id}')"><i class="bi bi-trash3"></i></button
+              
+           </div>
+            </div>
+
+        </div>
+    
+
+    `
+          div.appendChild(detalles);
+
+          // let eliminar = document.createElement('i');
+          // eliminar.className = "bi bi-trash-fill";
+          // detalles.appendChild(eliminar);
+          // eliminar.addEventListener("click", eliminarProductoC);
+
+
+        });
+        const total = carroCompras.reduce((acc, el) => acc + parseFloat(el.precio * el.cantidad), 0).toFixed(2);
+        const totalF = document.getElementById("preciototal");
+        totalF.innerHTML = `<p>total a pagar $: ${total}</P>`;
+
+
+        
+      }
+
+      function eliminarProductoC(id) {
+        //metodo find para buscar el id del producto para eliminar
+        const foundId = carroCompras.find((elementoP) => elementoP.id === id);
+        console.log(foundId)
+
+        carroCompras = carroCompras.filter((carritoId) => { //busco dentro del carrito y le pido que me busque todo los productos que sean diferentes al id de la linea 162 que es el producto que se desea eliminar 
+          return carritoId !== foundId;
+        })
+        mostrarProducto();
+        cookies();//elimina el producto de las cookies tambien
+      }
+
+
+
+      function sumarProducto(id) {
+        carroCompras.map((elemento) => {
+          if (elemento.id === id) {
+
+            elemento.cantidad++;
+
+
+            cookies();
+            mostrarProducto();
+          }
+        });
+      }
+
+      function restarProducto(id) {
+        carroCompras.map((elemento) => {
+          if (elemento.id === id) {
+
+            elemento.cantidad--;
+            if (elemento.cantidad == 0) {
+              eliminarProductoC(id)
+            };
+
+            cookies();
+            mostrarProducto();
+          }
+        });
+
+      }
+
+      function compra(){
+        alert('compra realizada exitosa!!')
+      }
+    </script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
+      integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3"
+      crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"
+      integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V"
+      crossorigin="anonymous"></script> <!--lINKS SCRIPS DE BOOSTRAP-->
+</body>
+
+</html>
